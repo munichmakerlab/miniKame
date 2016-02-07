@@ -1,8 +1,11 @@
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266mDNS.h>
 #include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h> // https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
 #include "octosnake.h"
 #include "minikame.h"
 
@@ -13,7 +16,7 @@ MiniKame robot;
 WiFiServer server(80);
 
 void setup(){
-    Serial.begin(115200);
+    Serial.begin(57600);
     Serial.println("Setting WiFi connection...");
     WiFi.mode(WIFI_AP_STA);
     WiFi.disconnect();

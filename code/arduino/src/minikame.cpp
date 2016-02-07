@@ -1,10 +1,25 @@
 #include "minikame.h"
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h> // https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+#define SERVOMIN  214
+#define SERVOMAX  490
+#define SERVOMID  352
 
 int angToUsec(float value){
     return value/180 * (MAX_PULSE_WIDTH-MIN_PULSE_WIDTH) + MIN_PULSE_WIDTH;
 }
 
 void MiniKame::init(){
+  // initial I2C pwm controller
+#ifdef ESP8266
+    Wire.pins(D2, D1);    // ESP8266 can use any two pins, such as SDA to #GPIO04/D2 and SCL to #GPIO05/D1
+#endif
+    pwm.begin();
+    pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+    yield();
+
     board_pins[0] = D1;
     board_pins[1] = D4,
     board_pins[2] = D8;
@@ -23,8 +38,6 @@ void MiniKame::init(){
     trim[6] = 6;
     trim[7] = 2;
 
-    //for(int i=0; i<8; i++) oscillator[i].setTrim(trim[i]);
-    for(int i=0; i<8; i++) servo[i].attach(board_pins[i]);
     home();
 }
 
@@ -172,14 +185,16 @@ void MiniKame::zero(){
 }
 
 void MiniKame::setServo(int id, float target){
-    servo[id].writeMicroseconds(angToUsec(target+trim[id]));
+    // send pulse width to I2C pwm controller
+    // value is mapped from total pwm pulse width to pwm range of motor-controller
+    pwm.setPWM(id, 0, map(angToUsec(target+trim[id]), MIN_PULSE_WIDTH, MAX_PULSE_WIDTH, SERVOMIN, SERVOMAX));
+    yield();
     _servo_position[id] = target;
 }
 
 float MiniKame::getServo(int id){
     return _servo_position[id];
 }
-
 
 void MiniKame::moveServos(int time, float target[8]) {
     if (time>10){
