@@ -6,11 +6,9 @@
 #include <Servo.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h> // https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+#include "config.h"
 #include "octosnake.h"
 #include "minikame.h"
-
-const char* ssid = "ssid";
-const char* password = "password";
 
 MiniKame robot;
 WiFiServer server(80);
